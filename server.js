@@ -2,25 +2,32 @@ const OktaSdk = require('@okta/okta-sdk-nodejs');
 const express = require('express');
 const fs = require('fs')
 const path = require('path')
+const tts = require('google-tts-api');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors());
 
 const openai = require('openai');
 const axios = require('axios');
 const FormData = require('form-data');
 
-const filePath = path.join(__dirname, "audio.mp3")
+const filePath = path.join(__dirname, "audio2.mp3")
 const model = "whisper-1"
 
 const formData = new FormData();
 formData.append("model", model);
 formData.append("file", fs.createReadStream(filePath))
 
+const apiKey = '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';
+
+
 app.post('/test', async (req, res) => {
 
     console.log("comming here");
 
-    const apiKey = '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';
+
   const apiUrl = 'https://api.openai.com/v1/audio/transcriptions';
   const response = await axios.post(apiUrl, formData, {
     headers: {
@@ -29,12 +36,14 @@ app.post('/test', async (req, res) => {
     }
   });
   console.log(response.data.text);
-
+  question = response.data.text
   res.send(response.data.text)
 
   });
 
-const OPENAI_API_KEY = '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';
+const OPENAI_API_KEY = apiKey;
+let question = "best places to visit in delhi";
+
 
 async function getOpenAIResponse2(question) {
     const apiUrl = 'https://api.openai.com/v1/engines/text-davinci-002/completions';
@@ -63,11 +72,14 @@ async function getOpenAIResponse2(question) {
   
   app.post('/test2', async (req, res) => {
 
-    console.log("comming here");
-    const question = "best places to visit in delhi";
-    getOpenAIResponse2(question)
+    console.log("comming here for the answer");
+    console.log("@@@@@@@@@" , req.query.question);
+
+
+    getOpenAIResponse2(req.query.question)
       .then(response => {
         console.log("OpenAI Response:", response);
+        speak(response.slice(0,198));
         res.send(response)
       })
       .catch(error => {
@@ -125,7 +137,6 @@ app.post('/process-audio', async (req, res) => {
 
 
 async function transcribeAudio(audioBuffer) {
-  const apiKey = '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';
   const apiUrl = 'https://api.openai.com/v1/speech/transcriptions';
   const response = await axios.post(apiUrl, {
     audio: audioBuffer.toString('base64'),
@@ -157,6 +168,29 @@ async function generateChatResponse(question) {
   const answer = response.choices[0].message.content;
   return answer;
 }
+const playSound = require('play-sound')(opts = {});
+
+async function speak(text) {
+  try {
+    console.log("coming here");
+    const url = tts.getAudioUrl(text, {
+      lang: 'en',
+      slow: false,
+      host: 'https://translate.google.com',
+    });
+
+    // Use a suitable audio player library or package to play the audio
+    console.log(url);
+    playSound.play(url);
+  } catch (error) {
+    console.error('Error occurred while converting text to speech:', error);
+  }
+}
+
+  
+function openNewTab(link) {
+    window.open(link, '_blank');
+  }
 
 app.listen(3000, () => {
   console.log('Server started on port 3000');
