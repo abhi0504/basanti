@@ -1,15 +1,40 @@
-// Chatbot.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Chatbot.css'; // Import the CSS file for styling
-import BasantiImage from './basanti.jpeg'; // Import the image of Basanti
+import { auth, provider } from './firebaseConfig'; // Import the Firebase configuration
+import { signInWithPopup } from 'firebase/auth';
 
 
 const Chatbot = () => {
   const [question, setQuestion] = useState('');
+  const [user, setUser] = useState('');
   const [response, setResponse] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
+  const apiKey = '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';
+
+  
+
+  const handleSignInWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth,provider).then((data) => {
+        console.log(data);
+        setUser(data.user)
+        localStorage.setItem("user", data.user)
+      })
+    } catch (error) {
+      console.error('Error occurred while signing in with Google:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      setUser('')
+      localStorage.clear()
+    } catch (error) {
+      console.error('Error occurred while signing out:', error);
+    }
+  };
 
   const handleSpeakResponse = (text) => {
     const speech = new SpeechSynthesisUtterance(text);
@@ -70,16 +95,16 @@ const Chatbot = () => {
     try {
       // Send the question to the backend for speech recognition
       console.log("1", question);
-      const audioResponse = await axios.post(`http://localhost:3000/test2?question=${encodeURIComponent(question)}`);
-      console.log("2", audioResponse.data);
-      setResponse(audioResponse.data);
-      handleSpeakResponse(audioResponse.data); // Play the chatbot response audio
+      const audioResponse = await getOpenAIResponse(question);
+      console.log("2", audioResponse);
+      setResponse(audioResponse);
+      handleSpeakResponse(audioResponse); // Play the chatbot response audio
 
       // Update the conversation history with both question and complete answer
       setConversationHistory((prevHistory) => [
         ...prevHistory,
         { role: 'user', content: question },
-        { role: 'chatbot', content: audioResponse.data },
+        { role: 'chatbot', content: audioResponse },
       ]);
     } catch (error) {
       console.error('Error occurred:', error);
@@ -88,14 +113,51 @@ const Chatbot = () => {
 
   // Use useEffect to scroll to the latest message when a new response is received
   useEffect(() => {
+    const userData = localStorage.getItem("user")
+    setUser(userData)
+    console.log(userData);
     const chatContainer = document.getElementById('chat-container');
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    // chatContainer.scrollTop = chatContainer.scrollHeight;
+    
   }, [conversationHistory]);
+
+  const getOpenAIResponse = async (question) => {
+    const apiUrl = 'https://api.openai.com/v1/engines/text-davinci-002/completions';
+
+    try {
+      const response = await axios.post(
+        apiUrl,
+        {
+          prompt: question,
+          max_tokens: 100
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+        }
+      );
+
+      return response.data.choices[0].text;
+    } catch (error) {
+      console.error('Error:', error);
+      return '';
+    }
+  };
 
   return (
     <div className='total'>
       <div className="chatbot-container">
-      <h1 className="chatbot-title">Project Basanti</h1>
+      {user ? (
+        <>
+                        <div> Welcome {user.displayName} !</div>
+
+                <div>{user.email}</div>
+        <button onClick={handleSignOut}>Sign Out</button>
+          <h1 className="chatbot-title">Project Basanti</h1>
+         
+      
       <div id="chat-container" className="chat-container">
         {conversationHistory.map((message, index) => (
           <div key={index} className={`chat-message ${message.role}`}>
@@ -117,6 +179,16 @@ const Chatbot = () => {
           <strong>Full Response:</strong> {response}
         </div>
       )}
+          {/* Your existing components */}
+          
+        </>
+      ) : (
+        <div>
+          <h2> To Talk with Basanti you need to sign in first !!!!! </h2>
+        <button onClick={handleSignInWithGoogle}>Sign In with Google</button>
+        </div>
+      )}
+      
     </div>
     </div>
     
