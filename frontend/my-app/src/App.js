@@ -32,7 +32,7 @@ const Chatbot = () => {
       setUser('')
       localStorage.clear()
     } catch (error) {
-      console.error('Error occurred while signing out:', error);
+      console.error('Error occurred while signing out:', error); 
     }
   };
 
