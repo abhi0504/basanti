@@ -20,7 +20,7 @@ const Chatbot = () => {
       await signInWithPopup(auth,provider).then((data) => {
         console.log(data);
         setUser(data.user)
-        localStorage.setItem("user", data.user)
+        localStorage.setItem("user", data.user) 
       })
     } catch (error) {
       console.error('Error occurred while signing in with Google:', error);
