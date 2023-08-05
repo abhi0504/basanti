@@ -11,7 +11,7 @@ const Chatbot = () => {
   const [response, setResponse] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
-  const apiKey = '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';
+  const apiKey = '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';
 
   
 
