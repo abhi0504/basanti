@@ -27,7 +27,7 @@ const Chatbot = () => {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async () => { 
     try {
       setUser('')
       localStorage.clear()
