@@ -3,36 +3,36 @@ import axios from 'axios';
 import './Chatbot.css'; // Import the CSS file for styling
 import { auth, provider } from './firebaseConfig'; // Import the Firebase configuration
 import { signInWithPopup } from 'firebase/auth';
-
-
+import AppointmentCalendar from './appointment';
+import AppointmentForm from './AppointmentForm';
 const Chatbot = () => {
   const [question, setQuestion] = useState('');
   const [user, setUser] = useState('');
   const [response, setResponse] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
-  const apiKey = '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';
+  const apiKey = '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';
 
-  
+
 
   const handleSignInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth,provider).then((data) => {
+      await signInWithPopup(auth, provider).then((data) => {
         console.log(data);
         setUser(data.user)
-        localStorage.setItem("user", data.user) 
+        localStorage.setItem("user", data.user)
       })
     } catch (error) {
       console.error('Error occurred while signing in with Google:', error);
     }
   };
 
-  const handleSignOut = async () => { 
+  const handleSignOut = async () => {
     try {
       setUser('')
       localStorage.clear()
     } catch (error) {
-      console.error('Error occurred while signing out:', error); 
+      console.error('Error occurred while signing out:', error);
     }
   };
 
@@ -118,7 +118,7 @@ const Chatbot = () => {
     console.log(userData);
     const chatContainer = document.getElementById('chat-container');
     // chatContainer.scrollTop = chatContainer.scrollHeight;
-    
+
   }, [conversationHistory]);
 
   const getOpenAIResponse = async (question) => {
@@ -149,49 +149,51 @@ const Chatbot = () => {
   return (
     <div className='total'>
       <div className="chatbot-container">
-      {user ? (
-        <>
-                        <div> Welcome {user.displayName} !</div>
+        {user ? (
+          <>
+            <div> Welcome {user.displayName} !</div>
 
-                <div>{user.email}</div>
-        <button onClick={handleSignOut}>Sign Out</button>
-          <h1 className="chatbot-title">Project Basanti</h1>
-         
-      
-      <div id="chat-container" className="chat-container">
-        {conversationHistory.map((message, index) => (
-          <div key={index} className={`chat-message ${message.role}`}>
-            <span>{message.content}</span>
+            <div>{user.email}</div>
+            <button onClick={handleSignOut}>Sign Out</button>
+            <h1 className="chatbot-title">Project Basanti</h1>
+
+
+            <div id="chat-container" className="chat-container">
+              {conversationHistory.map((message, index) => (
+                <div key={index} className={`chat-message ${message.role}`}>
+                  <span>{message.content}</span>
+                </div>
+              ))}
+              {isSpeaking && <div className="speaking-indicator">Speaking...</div>}
+            </div>
+            <div className="buttons-container">
+              <button className="voice-input-button" onClick={handleVoiceInput}>
+                Start Voice Input
+              </button>
+              <button className="stop-audio-button" onClick={handleStopAudio} disabled={!isSpeaking}>
+                Stop Audio
+              </button>
+            </div>
+            {response && (
+              <div className="full-response">
+                <strong>Full Response:</strong> {response}
+              </div>
+            )}
+            {/* Your existing components */}
+              <div>Hello</div>
+              <AppointmentCalendar />
+              <AppointmentForm />
+          </>
+        ) : (
+          <div>
+            <h2> To Talk with Basanti you need to sign in first !!!!! </h2>
+            <button onClick={handleSignInWithGoogle}>Sign In with Google</button>
           </div>
-        ))}
-        {isSpeaking && <div className="speaking-indicator">Speaking...</div>}
+        )}
+
       </div>
-      <div className="buttons-container">
-        <button className="voice-input-button" onClick={handleVoiceInput}>
-          Start Voice Input
-        </button>
-        <button className="stop-audio-button" onClick={handleStopAudio} disabled={!isSpeaking}>
-          Stop Audio
-        </button>
-      </div>
-      {response && (
-        <div className="full-response">
-          <strong>Full Response:</strong> {response}
-        </div>
-      )}
-          {/* Your existing components */}
-          
-        </>
-      ) : (
-        <div>
-          <h2> To Talk with Basanti you need to sign in first !!!!! </h2>
-        <button onClick={handleSignInWithGoogle}>Sign In with Google</button>
-        </div>
-      )}
-      
     </div>
-    </div>
-    
+
   );
 };
 
